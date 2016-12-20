@@ -1,0 +1,116 @@
+---
+meta:
+  elbs: (( param "What elbs will be in front?" ))
+
+  azs:
+    z1: (( param "What availability zone should the *_z1 vms be placed in?" ))
+    z2: (( param "What availability zone should the *_z2 vms be placed in?" ))
+    z3: (( param "What availability zone should the *_z3 vms be placed in?" ))
+
+  resource_pools:
+    micro:
+      stemcell: (( grab meta.stemcell ))
+      cloud_properties:
+        instance_type: t2.micro
+        root_disk:
+          size: 8_000
+        ephemeral_disk:
+          size: 10_240
+    small:
+      stemcell: (( grab meta.stemcell ))
+      cloud_properties:
+        instance_type: t2.small
+        root_disk:
+          size: 8_000
+        ephemeral_disk:
+          size: 10_240
+    medium:
+      stemcell: (( grab meta.stemcell ))
+      cloud_properties:
+        instance_type: t2.medium # m4.large
+        root_disk:
+          size: 8_000
+        ephemeral_disk:
+          size: 10_240
+    large:
+      stemcell: (( grab meta.stemcell ))
+      cloud_properties:
+        instance_type: t2.large
+        root_disk:
+          size: 8_000
+        ephemeral_disk:
+          size: 40_960
+  
+resource_pools:
+  - name: errand
+    .: (( inject meta.resource_pools.small ))
+    cloud_properties:
+      availability_zone: (( grab meta.azs.z1 ))
+
+  - name: haproxy_z1
+    .: (( inject meta.resource_pools.micro ))
+    cloud_properties:
+      availability_zone: (( grab meta.azs.z1 ))
+      elbs: (( grab meta.elbs ))
+
+  - name: haproxy_z2
+    .: (( inject meta.resource_pools.micro ))
+    cloud_properties:
+      availability_zone: (( grab meta.azs.z2 ))
+      elbs: (( grab meta.elbs ))
+
+disk_pools:
+- name: small
+  disk_size: 10_240
+  cloud_properties:
+    type: standard
+- name: medium
+  disk_size: 40_960
+  cloud_properties:
+    type: standard
+- name: large
+  disk_size: 102_400
+  cloud_properties:
+    type: standard
+- name: small_ssd
+  disk_size: 10_240
+  cloud_properties:
+    type: gp2
+- name: medium_ssd
+  disk_size: 40_960
+  cloud_properties:
+    type: gp2
+- name: large_ssd
+  disk_size: 102_400
+  cloud_properties:
+    type: gp2
+
+compilation:
+  workers: 2
+  network: haproxy1
+  reuse_compilation_vms: true
+  cloud_properties:
+    instance_type: c4.2xlarge
+    ephemeral_disk:
+      size: 10240
+    root_disk:
+      size: 8000
+    availability_zone: (( grab meta.azs.z1 ))
+
+jobs:
+- name: haproxy_z1
+  instances: 1
+  resource_pool: haproxy_z1
+  persistent_disk_pool: small
+  networks:
+  - name: haproxy1
+    static_ips: (( static_ips(0, 1, 2, 3, 4) ))
+
+- name: haproxy_z2
+  instances: 1
+  resource_pool: haproxy_z2
+  persistent_disk_pool: small
+  networks:
+  - name: haproxy2
+    static_ips: (( static_ips(0, 1, 2, 3, 4) ))
+

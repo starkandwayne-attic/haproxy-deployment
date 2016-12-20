@@ -1,0 +1,38 @@
+---
+name: (( param "Please define the deployment name in the environment templates" ))
+
+compilation: (( param "Specify the compilation node configurations" ))
+
+director_uuid: (( param "Specify the director uuid of your bosh ... director..." ))
+
+resource_pools: (( param "Please define one or more resource pools for your BOSH deployment" ))
+
+disk_pools:     (( param "Please define one or more disk pools for your BOSH deployment" ))
+
+networks:       (( param "Please define one or more networks for your BOSH deployment" ))
+
+meta:
+  jobs:
+    haproxy:
+      stats_user: admin
+      templates:
+      - { name: haproxy, release: haproxy }
+      - { name: nxlog, release: nxlog }
+      - { name: dbolo, release: bolo }
+      - { name: toolbelt, release: toolbelt }
+      - { name: toolbelt-quick, release: toolbelt }
+
+jobs:
+- name: haproxy_z1
+  .: (( inject meta.jobs.haproxy ))
+
+- name: haproxy_z2
+  .: (( inject meta.jobs.haproxy ))
+
+update:
+  canaries: 1
+  max_in_flight: 1
+  serial: true
+  canary_watch_time: 1000-60000
+  update_watch_time: 1000-60000
+
