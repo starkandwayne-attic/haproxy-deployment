@@ -1,0 +1,209 @@
+---
+jobs:
+- name: haproxy_z1
+  instances: 1
+  resource_pool: haproxy_z1
+  networks:
+  - name: haproxy1
+    static_ips: (( static_ips(0,1,2,3) ))
+
+- name: haproxy_z2
+  instances: 0
+  resource_pool: haproxy_z2
+  networks:
+  - name: haproxy2
+    static_ips: (( static_ips(0,1,2,3) ))
+
+networks:
+- name: haproxy1
+  type: manual
+  subnets:
+  # Assumes up to 10 VMs, including 5 static and 5 dynamic.
+  # Plus 5 (double the size) unused IPs, due to BOSH bug/quirk.
+  - cloud_properties:
+      name: random
+    range: 10.244.50.0/30
+    reserved:
+    - 10.244.50.1
+    static:
+    - 10.244.50.2
+
+  - cloud_properties:
+      name: random
+    range: 10.244.50.4/30
+    reserved:
+    - 10.244.50.5
+    static:
+    - 10.244.50.6
+  - cloud_properties:
+      name: random
+    range: 10.244.50.8/30
+    reserved:
+    - 10.244.50.9
+    static:
+    - 10.244.50.10
+  - cloud_properties:
+      name: random
+    range: 10.244.50.12/30
+    reserved:
+    - 10.244.50.13
+    static:
+    - 10.244.50.14
+  - cloud_properties:
+      name: random
+    range: 10.244.50.16/30
+    reserved:
+    - 10.244.50.17
+    static:
+    - 10.244.50.18
+
+  # Bonus double-sized network required due to BOSH oddity
+  - cloud_properties:
+      name: random
+    range: 10.244.50.20/30
+    reserved:
+    - 10.244.50.21
+    static: []
+  - cloud_properties:
+      name: random
+    range: 10.244.50.24/30
+    reserved:
+    - 10.244.50.25
+    static: []
+  - cloud_properties:
+      name: random
+    range: 10.244.50.28/30
+    reserved:
+    - 10.244.50.29
+    static: []
+  - cloud_properties:
+      name: random
+    range: 10.244.50.32/30
+    reserved:
+    - 10.244.50.33
+    static: []
+  - cloud_properties:
+      name: random
+    range: 10.244.50.36/30
+    reserved:
+    - 10.244.50.37
+    static: []
+- name: haproxy2
+  type: manual
+  subnets:
+  # Assumes up to 5 VMs, including 1 static and 4 dynamic.
+  # Plus 5 (double the size) unused IPs, due to BOSH bug/quirk.
+  subnets:
+  - cloud_properties:
+      name: random
+    range: 10.244.51.0/30
+    reserved:
+    - 10.244.51.1
+    static:
+    - 10.244.51.2
+
+  - cloud_properties:
+      name: random
+    range: 10.244.51.4/30
+    reserved:
+    - 10.244.51.5
+    static:
+    - 10.244.51.6
+  - cloud_properties:
+      name: random
+    range: 10.244.51.8/30
+    reserved:
+    - 10.244.51.9
+    static:
+    - 10.244.51.10
+  - cloud_properties:
+      name: random
+    range: 10.244.51.12/30
+    reserved:
+    - 10.244.51.13
+    static:
+    - 10.244.51.14
+  - cloud_properties:
+      name: random
+    range: 10.244.51.16/30
+    reserved:
+    - 10.244.51.17
+    static:
+    - 10.244.51.18
+
+  # Bonus double-sized network required due to BOSH oddity
+  - cloud_properties:
+      name: random
+    range: 10.244.51.20/30
+    reserved:
+    - 10.244.51.21
+    static: []
+  - cloud_properties:
+      name: random
+    range: 10.244.51.24/30
+    reserved:
+    - 10.244.51.25
+    static: []
+  - cloud_properties:
+      name: random
+    range: 10.244.51.28/30
+    reserved:
+    - 10.244.51.29
+    static: []
+  - cloud_properties:
+      name: random
+    range: 10.244.51.32/30
+    reserved:
+    - 10.244.51.33
+    static: []
+  - cloud_properties:
+      name: random
+    range: 10.244.51.36/30
+    reserved:
+    - 10.244.51.37
+    static: []
+
+compilation:
+  workers: 3
+  network: haproxy1
+  reuse_compilation_vms: true
+
+properties:
+  ha_proxy:
+    stats_password: (( vault meta.vault_prefix "/creds/users/stats:password" ))
+
+    log_level: "info"
+
+    disable_http: false
+
+    enable_4443: true
+
+    https_redirect_all: false
+
+    ssl_pem: ~
+
+    default_dh_param: 2048
+
+    connect_timeout: 5
+
+    client_timeout: 30
+
+    server_timeout: 30
+
+    websocket_timeout: 3600
+
+    keepalive_timeout: 5
+
+    request_timeout: 300
+
+    queue_timeout: 30
+
+    backend_servers: (( param "Specify your go routers IPs as backend servers" )) 
+
+    backend_port: 80
+
+    tcp:
+      - name: cf_app_ssh
+        port: 2222
+        backend_servers: (( param "Specify you  CF Access VMs IPs as your backend servers" ))
+        backend_port: 2222
