@@ -1,0 +1,12 @@
+---
+resource_pools:
+- name: haproxy_z1
+  stemcell: (( grab meta.stemcell ))
+  cloud_properties:
+    availability_zone: (( grab meta.azs.z1 ))
+    instance_type: m1.small
+- name: haproxy_z2
+  stemcell: (( grab meta.stemcell ))
+  cloud_properties:
+    availability_zone: (( grab meta.azs.z2 ))
+    instance_type: m1.small

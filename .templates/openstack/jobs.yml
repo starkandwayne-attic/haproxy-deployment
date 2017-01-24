@@ -1,0 +1,79 @@
+---
+meta:    
+  azs:
+    z1: (( param "What availability zone should the *_z1 vms be placed in?" ))
+    z2: (( param "What availability zone should the *_z2 vms be placed in?" ))
+jobs:
+- name: haproxy_z1
+  instances: 1
+  resource_pool: haproxy_z1
+  networks:
+  - name: haproxy1
+    static_ips: (( static_ips(0,1,2,3) ))
+
+- name: haproxy_z2
+  instances: 0
+  resource_pool: haproxy_z2
+  networks:
+  - name: haproxy2
+    static_ips: (( static_ips(0,1,2,3) ))
+
+networks:
+- name: haproxy1
+  type: manual
+  subnets: (( param "Please specify haproxy1 subnets" ))
+- name: haproxy2
+  type: manual
+  subnets: (( param "Please specify haproxy1 subnets" ))
+
+compilation:
+  workers: 3
+  network: haproxy1
+  reuse_compilation_vms: true
+  cloud_properties:
+    instance_type: m1.large
+    ephemeral_disk:
+      size: 10_240
+    root_disk:
+      size: 8_000
+    availability_zone: (( grab meta.azs.z1 ))
+
+properties:
+  ha_proxy:
+    stats_password: (( vault meta.vault_prefix "/creds/users/stats:password" ))
+
+    log_level: "info"
+
+    disable_http: false
+
+    enable_4443: true
+
+    https_redirect_all: false
+
+    ssl_pem: (( param "Configure the ssl pem you use for your haproxy" ))
+
+    default_dh_param: 2048
+
+    connect_timeout: 5
+
+    client_timeout: 30
+
+    server_timeout: 30
+
+    websocket_timeout: 3600
+
+    keepalive_timeout: 5
+
+    request_timeout: 300
+
+    queue_timeout: 30
+
+    backend_servers: (( param "Specify your go routers IPs as backend servers" )) 
+
+    backend_port: 80
+
+    tcp:
+      - name: cf_app_ssh
+        port: 2222
+        backend_servers: (( param "Specify you  CF Access VMs IPs as your backend servers" ))
+        backend_port: 2222
