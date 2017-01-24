@@ -5,7 +5,6 @@ meta:
   azs:
     z1: (( param "What availability zone should the *_z1 vms be placed in?" ))
     z2: (( param "What availability zone should the *_z2 vms be placed in?" ))
-    z3: (( param "What availability zone should the *_z3 vms be placed in?" ))
 
   resource_pools:
     micro:
@@ -27,7 +26,7 @@ meta:
     medium:
       stemcell: (( grab meta.stemcell ))
       cloud_properties:
-        instance_type: t2.medium # m4.large
+        instance_type: t2.medium
         root_disk:
           size: 8_000
         ephemeral_disk:
@@ -113,4 +112,3 @@ jobs:
   networks:
   - name: haproxy2
     static_ips: (( static_ips(0, 1, 2, 3, 4) ))
-
