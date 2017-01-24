@@ -12,22 +12,21 @@ disk_pools:     (( param "Please define one or more disk pools for your BOSH dep
 networks:       (( param "Please define one or more networks for your BOSH deployment" ))
 
 meta:
-  jobs:
-    haproxy:
-      stats_user: admin
-      templates:
-      - { name: haproxy, release: haproxy }
-      - { name: nxlog, release: nxlog }
-      - { name: dbolo, release: bolo }
-      - { name: toolbelt, release: toolbelt }
-      - { name: toolbelt-quick, release: toolbelt }
+  haproxy:
+    properties:
+      stats_enable: true
+      stats_user: cfadmin
+    templates:
+    - { name: haproxy, release: haproxy }
+    - { name: toolbelt, release: toolbelt }
+    - { name: toolbelt-quick, release: toolbelt }
 
 jobs:
 - name: haproxy_z1
-  .: (( inject meta.jobs.haproxy ))
+  .: (( inject meta.haproxy ))
 
 - name: haproxy_z2
-  .: (( inject meta.jobs.haproxy ))
+  .: (( inject meta.haproxy ))
 
 update:
   canaries: 1
@@ -35,4 +34,3 @@ update:
   serial: true
   canary_watch_time: 1000-60000
   update_watch_time: 1000-60000
-
